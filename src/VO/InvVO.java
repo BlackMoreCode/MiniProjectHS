@@ -66,17 +66,17 @@ public class InvVO {
         this.menuName = menuName;
     }
 
-    @Override // 오버라이딩 처리.
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof InvVO)) return false;
-        InvVO invVO = (InvVO) o;
-        return Objects.equals(menuName, invVO.menuName) &&
-                Objects.equals(storeId, invVO.storeId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(menuName, storeId);
-    }
+//    @Override // 오버라이딩 처리.
+//    public boolean equals(Object o) {
+//        if (this == o) return true; // Reference Equality Check ; 두개의 참조가 같은지 체크한다. 메모리상 같은지 확인; 같으면 논리적으로 동일함.
+//        if (!(o instanceof InvVO)) return false;    // 타입 검사; o 가 InvVO의 인스턴스인지 체크. 다른 타입의 객체를 비교안하게 하는 안전망
+//        InvVO invVO = (InvVO) o; // 필드에 접근할 수 있게 해줌?
+//        return Objects.equals(menuName, invVO.menuName) &&  //눌 값이 있나 비교 체크?
+//                Objects.equals(storeId, invVO.storeId);
+//    }
+//
+//    @Override
+//    public int hashCode() {
+//        return Objects.hash(menuName, storeId);
+//    }
 }
