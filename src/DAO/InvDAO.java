@@ -69,8 +69,7 @@ public class InvDAO {
             System.out.println("INSERT 실패");
             return false;
         } finally {
-            Common.close(rs);   // 이 부분 필요한가?
-            Common.close(stmt);
+            Common.close(psmt);
             Common.close(conn);
         }
     }
@@ -89,8 +88,7 @@ public class InvDAO {
             System.out.println("DELETE 실패");
             return false;
         } finally {
-            Common.close(rs);   // 이 부분 필요한가?
-            Common.close(stmt);
+            Common.close(psmt);
             Common.close(conn);
         }
     }
@@ -113,12 +111,12 @@ public class InvDAO {
             System.out.println("UPDATE 실패");
             return false;
         } finally {
-            Common.close(stmt);
+            Common.close(psmt);
             Common.close(conn);
         }
     }
 
-    public void empSelectResult(List<InvVO> list) {
+    public void invSelectResult(List<InvVO> list) {
         System.out.println("--------------------------------------------------------");
         System.out.println("                재고 정보");
         System.out.println("--------------------------------------------------------");

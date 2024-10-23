@@ -12,7 +12,7 @@ public class Acc_InfoVO {
     //세터에서도 제거, 생성자에서도 제거.
     private String storeId;
 
-    public Acc_InfoVO(String userId, String userPw, String userName, String userPhone, Date joinDate, int authLv, String storeId) {
+    public Acc_InfoVO(String userId, String userPw, String userName, String userPhone, Date joinDate, String storeId) {
         this.userId = userId;
         this.userPw = userPw;
         this.userName = userName;
