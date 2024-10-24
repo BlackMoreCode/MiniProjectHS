@@ -22,34 +22,37 @@ public class StoreDAO {
         sc = new Scanner(System.in);
     }
 
-    // 지점 가용 계좌(자본금) 입금
+    // 가상 계좌 충전
     public boolean cpCharge(StoreVO vo) { // capital Charge
-        String sql = "UPDATE STORE SET CAPITAL = CAPITAL + ? WHERE STORE_ID = ?"; // 계좌 충전
         try {
             conn = Common.getConnection(); // 오라클 DB연결
+            String sql = "UPDATE STORE SET capital = capital + ? WHERE store_id = ?"; // 계좌 충전
             psmt = conn.prepareStatement(sql); // 동적인 데이터로 받을때 사용 (?)
 
             psmt.setInt(1, vo.getCapital()); // capital 설정
             psmt.setString(2, vo.getStoreId()); // store_id 설정
 
-            psmt.executeUpdate();
+            if (psmt.executeUpdate() == 0) { // UPDATE
+                throw new Exception();
+            };
+            Common.close(psmt);
+            Common.close(conn);
             return true;
         } catch (Exception e) {
             System.out.print("계좌 입금 전송 실패");
-            return false;
-        } finally {
             Common.close(psmt);
             Common.close(conn);
+            return false;
         }
     }
 
     // 가용금액 표시
-    public List<StoreVO> cpSelect() { // capitalSelect
+    public List<StoreVO> cpSelect(String cpStoreId) { // capitalSelect
         List<StoreVO> list = new ArrayList<>();
         try {
             conn = Common.getConnection(); // 오라클 DB연결
             stmt = conn.createStatement(); // statement 생성
-            String query = "SELECT STORE_ID, CAPITAL FROM Store";
+            String query = "SELECT store_id, capital FROM Store WHERE store_id = '" + cpStoreId + "'";
             rs = stmt.executeQuery(query);
 
             while (rs.next()) {
@@ -68,13 +71,35 @@ public class StoreDAO {
         return list;
     }
 
+    // DataBase Table Store에 store_id와 로그인 했을때 지점이 같은지 확인
+    public String getCpStoreId(String userId) {
+        String storeId = "";
+        try {
+            conn = Common.getConnection();
+            String sql = "SELECT STORE_ID FROM ACC_INFO WHERE USER_ID = '" + userId + "'";
+            psmt = conn.prepareStatement(sql); //createStement 랑 prepareStatement의 차이를 공부해야한다
+            rs = psmt.executeQuery();
+            if(rs.next()) {
+                storeId = rs.getString("STORE_ID");
+            }
+        } catch(Exception e) {
+            System.out.println("로그인 실패!");
+            System.out.println(e.getMessage());
+        }
+        Common.close(rs);
+        Common.close(psmt);
+        Common.close(conn);
+        return storeId;
+    }
+
     // 매출현황
-    public List<StoreVO> slSelect() { // capitalSelect
+    public List<StoreVO> slSelect(String slStoreId) { // capitalSelect
         List<StoreVO> list = new ArrayList<>();
         try {
             conn = Common.getConnection(); // 오라클 DB연결
             stmt = conn.createStatement(); // statement 생성
-            String query = "SELECT sales FROM Store";
+            String query =  "SELECT sales FROM Store WHERE store_id = '" + slStoreId + "'";
+            System.out.println(query);
             rs = stmt.executeQuery(query);
 
             while (rs.next()) {
@@ -91,6 +116,26 @@ public class StoreDAO {
         }
         return list;
     }
+    // DataBase Table Store에 store_id와 로그인 했을때 지점이 같은지 확인
+    public String getSlStoreId(String userId) {
+        String storeId = "";
+        try {
+            conn = Common.getConnection();
+            String sql = "SELECT STORE_ID FROM ACC_INFO WHERE USER_ID = '" + userId + "'";
+            psmt = conn.prepareStatement(sql); //createStement 랑 prepareStatement의 차이를 공부해야한다
+            rs = psmt.executeQuery();
+            if(rs.next()) {
+                storeId = rs.getString("STORE_ID");
+            }
+        } catch(Exception e) {
+            System.out.println("로그인 실패!");
+            System.out.println(e.getMessage());
+        }
+        Common.close(rs);
+        Common.close(psmt);
+        Common.close(conn);
+        return storeId;
+    }
 
     public static StoreVO cpChargeInput() {
         Scanner sc = new Scanner(System.in);
@@ -101,12 +146,11 @@ public class StoreDAO {
         return new StoreVO(storeId, capital);
     }
 
+
     public List<StoreVO> cpSelectResult(List<StoreVO> list ) {
         System.out.println("-------------------------------------------------");
-        System.out.println("                지점 계좌 잔액 현황");
-        System.out.println("-------------------------------------------------");
         for (StoreVO e : list) {
-            System.out.print(e.getStoreId() + ":" + e.getCapital() + "원");
+            System.out.print(e.getStoreId() + "계좌 잔액 현황 : " + e.getCapital() + "원");
             System.out.println();
         }
         System.out.println("-------------------------------------------------");
@@ -115,10 +159,8 @@ public class StoreDAO {
 
     public void slSelectResult(List<StoreVO> list ) {
         System.out.println("-------------------------------------------------");
-        System.out.println("                  총 매출 현황");
-        System.out.println("-------------------------------------------------");
         for (StoreVO e : list) {
-            System.out.print(e.getSales() + "원");
+            System.out.print("총 매출 현황 : " + e.getSales() + "원");
             System.out.println();
         }
         System.out.println("-------------------------------------------------");
