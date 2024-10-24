@@ -29,8 +29,9 @@ public class Acc_InfoVO {
         this.userName = userName;
     }
 
-    public Acc_InfoVO(String userId, String userName, String userPhone, Date joinDate) {
+    public Acc_InfoVO(String userId, String userPw, String userName, String userPhone, Date joinDate) {
         this.userId = userId;
+        this.userPw = userPw;
         this.userName = userName;
         this.userPhone = userPhone;
         this.joinDate = joinDate;
