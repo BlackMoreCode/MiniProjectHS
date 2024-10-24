@@ -8,9 +8,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.List;
 import java.util.Scanner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.IntStream;
 
 import static DAO.Acc_InfoDAO.Acc_InfoSelect;
 import static DAO.Acc_InfoDAO.psmt;
