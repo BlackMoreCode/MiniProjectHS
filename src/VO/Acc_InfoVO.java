@@ -24,6 +24,18 @@ public class Acc_InfoVO {
     public Acc_InfoVO() {
     }
 
+    public Acc_InfoVO(String userId, String userName) {
+        this.userId = userId;
+        this.userName = userName;
+    }
+
+    public Acc_InfoVO(String userId, String userName, String userPhone, Date joinDate) {
+        this.userId = userId;
+        this.userName = userName;
+        this.userPhone = userPhone;
+        this.joinDate = joinDate;
+    }
+
     public String getUserId() {
         return userId;
     }
