@@ -12,19 +12,20 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Acc_InfoDAO {
-    Connection conn = null;
-    Statement stmt = null;
-    PreparedStatement psmt = null;
-    ResultSet rs = null;
-    Scanner sc = new Scanner(System.in);
+    static Connection conn = null;
+    static Statement stmt = null;
+    static PreparedStatement psmt = null;
+    static ResultSet rs = null;
+    static Scanner sc = new Scanner(System.in);
 
     // 회원 정보 조회 (전체 조회; 중복 체크만을 위험이므로 유저권한 및 지점 정보를 제외하고 불러온다)
-    public List<Acc_InfoVO> Acc_InfoSelect() {
+    public static List<Acc_InfoVO> Acc_InfoSelect() {
         List<Acc_InfoVO> accInfo = new ArrayList<>();
         try {
             conn = Common.getConnection(); // 오라클DB 연결
             stmt = conn.createStatement(); // Statement 생성
-            String query = "SELECT USER_ID, USER_NAME FROM ACC_INFO"; //추후 수정 가능
+            String query = "SELECT * FROM ACC_INFO"; //추후 수정 가능
+//            String query = "SELECT USER_ID, USER_NAME FROM ACC_INFO"; //추후 수정 가능
             // executeQuery: select 문과 같이 결과값이 여러 개의 레코드로 반환되는 경우 사용
             rs = stmt.executeQuery(query); // ResultSet: 여러 행의 결과값을 받아서 반복자(iterator)를 제공
             while (rs.next()) { // 아이디 & 이름만 불러오니까 필요 없는건 주석처리 혹은 제거 필ㅇ?
@@ -33,9 +34,8 @@ public class Acc_InfoDAO {
                 String userName = rs.getString("USER_NAME");
                 String userPhone = rs.getString("USER_PHONE");
                 Date joinDate = rs.getDate("JOIN_DATE");
-                // int authLv = ??
-//                String storeId = rs.getString("STORE_ID");
-                Acc_InfoVO vo = new Acc_InfoVO(userId, userPw, userName, userPhone, joinDate); // 개별 생성자 하나 더 만듬
+                int authLv = rs.getInt("AUTH_LV");
+                Acc_InfoVO vo = new Acc_InfoVO(userId, userPw, userName, userPhone, joinDate, authLv);
                 accInfo.add(vo);
             }
             Common.close(rs);
@@ -48,12 +48,12 @@ public class Acc_InfoDAO {
         return accInfo;
     }
 
-    // 로그인 체크 로직 => 아이디 / 비밀번호 검사. 회원정보 수정 / 탈퇴시에도 이 로직 이용?
+    // 유저용 로그인 체크 로직 => 아이디 / 비밀번호 검사. 회원정보 수정 / 탈퇴시에도 이 로직 이용?
     public boolean accInfoCheck (String userId, String userPw) {
         boolean isMember = false;
         try {
             conn = Common.getConnection();
-            String sql = "SELECT COUNT(*) FROM ACC_INFO WHERE USER_ID = ? AND USER_PW = ?";
+            String sql = "SELECT COUNT(*) FROM ACC_INFO WHERE USER_ID = ? AND USER_PW = ? AND AUTH_LV = 3";
             psmt = conn.prepareStatement(sql); //createStement 랑 prepareStatement의 차이를 공부해야한다.
             psmt.setString(1, userId);
             psmt.setString(2, userPw);
@@ -73,12 +73,12 @@ public class Acc_InfoDAO {
         return isMember;
     }
 
-    // 마스터/서브마스터 로그인 체크 로직 => 아이디 / 비밀번호 검사.
+    // 점주 용 로그인 체크
     public boolean accInfoAdminCheck (String userId, String userPw) {
         boolean isAdmin = false;
         try {
             conn = Common.getConnection();
-            String sql = "SELECT COUNT(*) FROM ACC_INFO WHERE USER_ID = ? AND USER_PW = ? AND AUTH_LV IN (1, 2)";
+            String sql = "SELECT COUNT(*) FROM ACC_INFO WHERE USER_ID = ? AND USER_PW = ? AND AUTH_LV = 1";
             psmt = conn.prepareStatement(sql); //createStement 랑 prepareStatement의 차이를 공부해야한다.
             psmt.setString(1, userId);
             psmt.setString(2, userPw);
@@ -98,12 +98,39 @@ public class Acc_InfoDAO {
         return isAdmin;
     }
 
+    // 본점 용 로그인 체크
+    public boolean accInfoHQCheck (String userId, String userPw) {
+        boolean isHQ = false;
+        try {
+            conn = Common.getConnection();
+            String sql = "SELECT COUNT(*) FROM ACC_INFO WHERE USER_ID = ? AND USER_PW = ? AND AUTH_LV = 2";
+            psmt = conn.prepareStatement(sql); //createStement 랑 prepareStatement의 차이를 공부해야한다.
+            psmt.setString(1, userId);
+            psmt.setString(2, userPw);
+            rs = psmt.executeQuery();
+            if(rs.next()) {
+                if(rs.getInt("COUNT(*)") == 1) {
+                    isHQ = true;
+                }
+            }
+        } catch(Exception e) {
+            System.out.println("로그인 실패!");
+            System.out.println(e.getMessage());
+        }
+        Common.close(rs);
+        Common.close(psmt);
+        Common.close(conn);
+        return isHQ;
+    }
+
+
 
     // 회원 가입을 한다 = ACC_INFO 테이블에 추가한다 = INSERT 처리다?
     // 회원 가입을 위해서는 희망 아이디, 비밀번호, 연락처를 기입. 가입일시, 유저레벨(AUTH_LV)은 자동으로 부여. STORE_ID 역시 입력하지 않는다.
-    public String Acc_InfoInsert(Acc_InfoVO vo) {
+    public static void Acc_InfoInsert() {
         // 회원정보 불러오기; Acc_InfoSelect 참조.
         List<Acc_InfoVO> accInfo = Acc_InfoSelect();
+        Scanner sc = new Scanner(System.in);
         System.out.println("가입을 위해 회원 정보를 입력해주세요!");
         // 회원 정보 입력 시작
         // 유저 아이디
@@ -144,7 +171,7 @@ public class Acc_InfoDAO {
 
             if(userPw.length() < 8) System.out.println("비밀번호는 8자 이상 입력해주세요");
             else if (userPw.getBytes().length > 20) System.out.println("비밀번호는 20자 이하 영문자와 &제외 특수문자로 입력해주세요");
-            else if (!passMatcher1.find()) System.out.println("비밀번호는 영문자, 숫자, 특수기호만 사용 할 수 있습니다.");
+            else if (!passMatcher1.find()) System.out.println("비밀번호는 영문자, 숫자, 특수기호의 조합으로만 사용 할 수 있습니다.");
             else if (userPw.indexOf('&') >= 0) System.out.println("&는 비밀번호로 사용할수 없습니다.");
             else break;
         }
@@ -188,98 +215,23 @@ public class Acc_InfoDAO {
             Common.close(conn);
         }
         System.out.println("회원가입이 완료되었습니다. 메인메뉴로 이동합니다.");
-        return userId;
     }
 
 
-    // 회원 탈퇴의 경우
-    public boolean Acc_InfoDelete(Acc_InfoVO vo) {
-        Connection conn = null;
-        PreparedStatement psmt = null;
-        Scanner sc = new Scanner(System.in);
-
-        System.out.print("삭제할 회원의 아이디를 입력 하세요 : ");
-        String userId = sc.next();
-        String sql = "DELETE FROM ACC_INFO WHERE USER_ID = ?";
-
-        try {
-            conn = Common.getConnection();
-            psmt = conn.prepareStatement(sql);
-            psmt.setString(1, userId);
-            int rst = psmt.executeUpdate(); // INSERT, UPDATE, DELETE에 해당하는 함수
-            System.out.println("DELETE 결과로 영향 받는 행의 갯수 : " + rst);
-            return true; // 원래는 반환값 받는거 처리해야한다.. 쿼리문에 대한 성공실패만 판정. 이 부분에 대한 변경은 추후 논의
-        } catch (Exception e) {
-            System.out.println("DELETE 실패");
-            return false;
-        } finally {
-            Common.close(psmt);
-            Common.close(conn);
+    public static void accInfoSelectResult(List<Acc_InfoVO> list) {
+        System.out.println("--------------------------------------------------------");
+        System.out.println("                회원정보");
+        System.out.println("--------------------------------------------------------");
+        for(Acc_InfoVO e : list) {
+            System.out.print(e.getUserId() + " ");
+            System.out.print(e.getUserPw() + " ");
+            System.out.print(e.getUserName() + " ");
+            System.out.print(e.getUserPhone() + " ");
+            System.out.print(e.getStoreId() + " ");
+            System.out.print(e.getAuthLv() + " ");
+            System.out.println();
         }
+        System.out.println("--------------------------------------------------------");
     }
 
-    public void Acc_InfoUpdate(Acc_InfoVO vo, String userId) {
-        // 회원정보 불러오기; Acc_InfoSelect 참조.
-        List<Acc_InfoVO> accInfo = Acc_InfoSelect();
-
-        //비밀번호 수정 시
-        String userPw = "";
-        while (true) {
-            System.out.println("비밀번호를 바꾸지 않을 경우 NO를 입력해주세요");
-            System.out.print("변경할 비밀번호(8자 이상 20자 이하) : ");
-            userPw = sc.next();
-
-            if(userPw.equalsIgnoreCase("NO")) break; // 위에서 언급한 NO 입력시 비밀번호 수정 안함 처리.
-            else if(userPw.length() < 8) System.out.println("비밀번호는 8자 이상 입력해주세요");
-            else if (userPw.length() > 20) System.out.println("비밀번호는 20자 이하로 입력해주세요");
-            else if (userPw.indexOf('&') >= 0) System.out.println("&는 비밀번호로 사용할수 없습니다.");
-            else break;
-        }
-
-        // 연락처 수정시
-        String userPhone = "";
-        while(true) {
-            System.out.println("연락처를 바꾸지 않을 경우 NO를 입력해주세요");
-            System.out.print("변경할 핸드폰 번호를 입력하세요 : ");
-            userPhone = sc.next();
-            String check = userPhone;
-            //중복 체크
-            // 회원정보 리스트에 스트림으로 필터를 걸어서 하나라도 일치하는게 있다면 값 반환 없으면 null 반환
-            if(accInfo.stream().filter(n -> check.equals(n.getUserPhone())).findAny().orElse(null) != null) {
-                System.out.println("이미 사용중인 번호 입니다.");
-            }else if (userPhone.equalsIgnoreCase("NO")){ // // 위에서 언급한 NO 입력시 연락처 수정 안함 처리.
-                userPhone = vo.getUserPhone();
-                break;
-            }else break;
-        }
-
-        String sql = "";
-        if (userPw.equalsIgnoreCase("NO")) {
-            sql = "UPDATE ACC_INFO SET USER_PHONE = ? WHERE USER_ID = ?";
-            try{
-                conn = Common.getConnection();
-                psmt = conn.prepareStatement(sql);
-                psmt.setString(1, userPhone);
-                psmt.setString(2, userId);
-                psmt.executeUpdate();
-            }catch(Exception e)  {
-                System.out.println(e.getMessage());
-            }
-        } else {
-            sql = "UPDATE ACC_INFO SET USER_PW = ?, USER_PHONE = ? WHERE USER_ID = ?";
-            try{
-                conn = Common.getConnection();
-                psmt = conn.prepareStatement(sql);
-                psmt.setString(1, userPw);
-                psmt.setString(2, userPhone);
-                psmt.setString(3, userId);
-                psmt.executeUpdate();
-            }catch(Exception e)  {
-                System.out.println(e.getMessage());
-            }
-        }
-        Common.close(psmt);
-        Common.close(conn);
-        System.out.println("회원정보 수정이 완료되었습니다.");
-    }
 }
