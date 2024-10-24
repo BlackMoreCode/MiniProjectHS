@@ -8,6 +8,7 @@ public class InvVO {
     private int price;
     private int stock;
     private String descr;
+    private String category;
 
     public InvVO(String menuName, String storeId, int price, int stock, String descr) {
         this.menuName = menuName;
@@ -17,11 +18,37 @@ public class InvVO {
         this.descr = descr;
     }
 
+    // 고객 화면에 메뉴 표시를 위한 생성자
+    public InvVO(String menuName, int price, String descr, String cat){
+        this.menuName = menuName;
+        this.price = price;
+        this.descr = descr;
+        this.category = cat;
+    }
+
+    // 점주의 재고를 표시하기 위한 생성자
+    public InvVO(String menuName, int stock, String category) {
+        this.menuName = menuName;
+        this.stock = stock;
+        this.category = category;
+    }
+
+    // 점주가 본사 재고를 보기 위한 테이블
+    public InvVO(String menuName, String category, int price) {
+        this.menuName = menuName;
+        this.price = price;
+        this.category = category;
+    }
+
     public InvVO() {
     }
 
     public String getMenuName() {
         return menuName;
+    }
+
+    public String getCategory() {
+        return category;
     }
 
     public String getStoreId() {

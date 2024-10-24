@@ -1,7 +1,4 @@
-import DAO.Acc_InfoDAO;
-import DAO.MyPageDAO;
-import DAO.Order_RecordDAO;
-import DAO.StoreDAO;
+import DAO.*;
 import VO.Acc_InfoVO;
 import VO.Order_RecordVO;
 
@@ -18,6 +15,7 @@ public class HSMain {
         Acc_InfoDAO aiDAO = new Acc_InfoDAO();
         StoreDAO sDAO = new StoreDAO();
         Order_RecordDAO orDAO = new Order_RecordDAO();
+        InvDAO invDAO = new InvDAO();
 
         boolean isLoggedIn = false;
         boolean isAdminLoggedIn = false;
@@ -102,6 +100,9 @@ public class HSMain {
             int choice = sc.nextInt();
             switch(choice) {
                 case 1:
+                    invDAO.choiceStore();
+                    invDAO.cusOrder();
+                    invDAO.inCart();
                     break;
                 case 2:
                     List<Order_RecordVO> list = Order_RecordDAO.Order_RecordSelect();
