@@ -1,16 +1,16 @@
 package VO;
 
-import java.sql.Date;
+import java.sql.Timestamp;
 
 public class Order_RecordVO {
     private String orderCode;
     private String orderList;
-    private Date orderTime; // LocalDateTime 을 대신 써야할지 아직 고민중.
+    private Timestamp orderTime; // LocalDateTime 을 대신 써야할지 아직 고민중.
     private int orderPrice;
     private String userId;
     private String storeId;
 
-    public Order_RecordVO(String orderCode, String orderList, Date orderTime, int orderPrice, String userId, String storeId) {
+    public Order_RecordVO(String orderCode, String orderList, Timestamp orderTime, int orderPrice, String userId, String storeId) {
         this.orderCode = orderCode;
         this.orderList = orderList;
         this.orderTime = orderTime;
@@ -19,7 +19,7 @@ public class Order_RecordVO {
         this.storeId = storeId;
     }
 
-    public Order_RecordVO() {
+    public Order_RecordVO(String userId, String storeId, String orderList, int orderPrice) {
     }
 
     public String getOrderCode() {
@@ -30,8 +30,12 @@ public class Order_RecordVO {
         return orderList;
     }
 
-    public Date getOrderTime() {
+    public Timestamp getOrderTime() {
         return orderTime;
+    }
+
+    public void setOrderTime(Timestamp orderTime) {
+        this.orderTime = orderTime;
     }
 
     public int getOrderPrice() {
@@ -54,9 +58,7 @@ public class Order_RecordVO {
         this.orderList = orderList;
     }
 
-    public void setOrderTime(Date orderTime) {
-        this.orderTime = orderTime;
-    }
+
 
     public void setOrderPrice(int orderPrice) {
         if (orderPrice < 0) {   // null은 허용 안하니까 조건은 음수일 수 없다로만 설정.

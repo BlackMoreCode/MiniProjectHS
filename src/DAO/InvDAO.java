@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import static DAO.Order_RecordDAO.orderRecordInsert;
+
 public class InvDAO {
     Connection conn = null;
     Statement stmt = null;
@@ -40,7 +42,7 @@ public class InvDAO {
             System.out.println(e.getMessage());
         }
 
-        System.out.printf("%20s", "점포 목록");
+        System.out.printf("%20s", "점포 목록\n");
         for (String e : lst) {
             System.out.printf("[%d] %s \n", i++, e);
         }
@@ -145,7 +147,7 @@ public class InvDAO {
     }
 
     // 장바구니 내부 동작
-    public void inCart() {
+    public void inCart(String userId) {
         int n;
         int change;
 
@@ -167,6 +169,10 @@ public class InvDAO {
 
             switch (sel) {
                 case 1:
+                    if(singleCart.isEmpty() && setCart.isEmpty()){
+                        System.out.println("장바구니가 비어있습니다.");
+                        break;
+                    }
                     System.out.print("수량을 변경할 메뉴를 선택 해 주세요 : ");
                     n = sc.nextInt() - 1;
                     sc.nextLine();
@@ -217,7 +223,9 @@ public class InvDAO {
                     System.out.printf("총 가격 : %d원", totalPrice);
                     paymentUpdate();
 
-                    // 추후 결제정보 리턴하여 다른 객체로 넘겨주기
+                    // totalPrice 매출액으로 쏴주기
+                    // Order_RecordDAO의 메서드
+                    orderRecordInsert(storeId, orderToString(setCart, singleCart), totalPrice, userId);
                     singleCart.clear();
                     setCart.clear();
                     return;
@@ -227,6 +235,8 @@ public class InvDAO {
             }
         }
     }
+
+
 
     // 결제 시 재고 감소
     public void paymentUpdate() {
@@ -257,6 +267,26 @@ public class InvDAO {
         } catch (Exception e) {
             System.out.println("Error in paymentUpdate : " + e.getMessage());
         }
+        System.out.println(tuple+"번의 액세스");
+    }
+
+    public String orderToString(List<SetMenu> set, List<SingleMenu> single) {
+        StringBuilder sb = new StringBuilder();
+        for (SetMenu e : set) {
+            sb.append(e.getBurger().getName()).append("/");
+            sb.append(e.getCount()).append("개").append(",");
+            sb.append(e.getSide().getName()).append("/");
+            sb.append(e.getCount()).append("개").append(",");
+            sb.append(e.getDrink().getName()).append("/");
+            sb.append(e.getCount()).append(",");
+        }
+
+        for (SingleMenu e : single) {
+            sb.append(e.getName()).append("/");
+            sb.append(e.getCount()).append("개").append(",");
+        }
+
+        return sb.toString();
     }
 
 
@@ -287,6 +317,7 @@ public class InvDAO {
         }
     }
 
+    // 점주의 발주를 실행
     public void ownerOrder() {
         int capital = CapitalCheck();
 
@@ -345,6 +376,7 @@ public class InvDAO {
                 int cnt = sc.nextInt();
                 sc.nextLine();
 
+                // 발주품 재고 증가와 매장계좌 잔액의 감소를 한 트랜잭션으로 묶음
                 if (selectedCategory.get(idx).getPrice() * cnt <= capital) {
                     try (Connection conn = Common.getConnection()) {
                         conn.setAutoCommit(false);
@@ -362,7 +394,7 @@ public class InvDAO {
                                 System.out.println("Changes rolled back.");
                             }
                         } catch (SQLException rollbackEx) {
-                            rollbackEx.printStackTrace();
+                            System.out.println(rollbackEx.getMessage());
                         }
                     }
                 } else {
@@ -418,6 +450,7 @@ public class InvDAO {
         return 0;
     }
 
+    // 점주의 발주에 쓰이는 메서드
     public List<InvVO> orderInvCheck() {
         List<InvVO> vo = new ArrayList<>();
         String sqlInv = "SELECT MENU_NAME, PRICE, CATEGORY FROM INV_ORDER";
@@ -441,6 +474,7 @@ public class InvDAO {
         return null;
     }
 
+    // 점주의 재고 확인 메서드
     public void invCheck(String storeId) {
         List<InvVO> vo = new ArrayList<>();
 
@@ -508,5 +542,6 @@ public class InvDAO {
             }
         }
     }
+
 
 }

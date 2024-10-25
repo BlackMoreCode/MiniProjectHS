@@ -17,6 +17,7 @@ public class HSMain {
         Scanner sc = new Scanner(System.in);
         Acc_InfoDAO aiDAO = new Acc_InfoDAO();
         StoreDAO sDAO = new StoreDAO();
+        InvDAO invDAO = new InvDAO();
 
         boolean isLoggedIn = false;
         boolean isAdminLoggedIn = false;
@@ -103,9 +104,9 @@ public class HSMain {
 
         while (isLoggedIn) { // 소비자 로그인
             System.out.println("내 정보 페이지");
-            InvDAO invDAO = new InvDAO();
 
-            System.out.print("[1]주문하기 [2]주문내역 확인 [3]회원정보 수정 [4]회원탈퇴 [5]종료하기 : ");
+
+            System.out.print("[1]주문하기 [2]장바구니 [3]주문내역 확인 [4]회원정보 수정 [5]회원탈퇴 [6]종료하기 : ");
             int choice = sc.nextInt();
             switch(choice) {
                 case 1:
@@ -113,18 +114,22 @@ public class HSMain {
                     invDAO.cusOrder();
                     break;
                 case 2:
-                    List<Order_RecordVO> list = Order_RecordDAO.Order_RecordSelect();
-                    Order_RecordDAO.Order_RecordSelectResult(list);
+                    invDAO.inCart(userId);
                     break;
                 case 3:
-                    MyPageDAO.membUpdate(new Acc_InfoVO(), userId);
+                    List<Order_RecordVO> list = Order_RecordDAO.Order_RecordSelect(userId);
+                    Order_RecordDAO.Order_RecordSelectResult(list);
                     break;
                 case 4:
+                    MyPageDAO.membUpdate(new Acc_InfoVO(), userId);
+                    break;
+                case 5:
                     MyPageDAO.membDelete(new Acc_InfoVO());
                     System.out.println("회원탈퇴 처리 되었습니다");
                     isLoggedIn = false;
+                    menuSelect();
                     break;
-                case 5:
+                case 6:
                     System.out.println("로그아웃 합니다");
                     isLoggedIn = false;
                     break;
@@ -133,10 +138,8 @@ public class HSMain {
             }
         }
 
-        while (isAdminLoggedIn) { //점주로 로그인
+        while (isAdminLoggedIn) { // 점주로 로그인
             System.out.println("ADMIN 로그인 페이지");
-            // System.out.print(adminId);
-            InvDAO invDAO = new InvDAO();
             System.out.print("항목 선택 [1]발주 [2]재고확인 [3]매출현황 [4]매장계좌 [5]로그아웃 : ");
             int choice = sc.nextInt();
             switch(choice) {
@@ -145,41 +148,46 @@ public class HSMain {
                 case 2: // 재고확인
                     invDAO.invCheck(Session.storeId);
                     break;
-                case 3: sDAO.slSelectResult(sDAO.slSelect(sDAO.getSlStoreId(adminId)));
+                case 3:
+                    sDAO.slSelectResult(sDAO.slSelect(sDAO.getSlStoreId(adminId)));
                     break;
                 case 4:
-                    storeCapital = true;
+                    storeCapital = true; // Set the flag to enter the store capital menu
                     break;
                 case 5:
                     System.out.println("로그아웃 합니다");
                     Session.isAdminLoggedIn = false;  // Reset session
                     Session.loggedInUserId = null;     // Clear session data
                     isAdminLoggedIn = false;           // Reset local flag
+                    menuSelect();
                     break;
-                default :
+                default:
                     System.out.println("메뉴를 잘 못 선택하셨습니다.");
             }
-            if (storeCapital) break;
-        }
-        while (storeCapital){ // 매장계좌
-            System.out.print("항목 선택 [1]계좌 입금 [2]계좌 잔액 현황 [3]뒤로가기 : ");
-            int choice = sc.nextInt();
-            switch(choice) {
-                case 1:
-                    boolean isSuccess = sDAO.cpCharge(sDAO.cpChargeInput(),sDAO.getCpCStoreId(adminId));
-                    if (isSuccess) System.out.println("계좌에 금액이 송금되었습니다..");
-                    else System.out.println("계좌에 송금이 실패했습니다.");
-                    break;
-                case 2:
-                    sDAO.cpSelectResult(sDAO.cpSelect(sDAO.getCpSStoreId(adminId)));
-                    break;
-//                case 3:
-//                    isAdminLoggedIn = true;
-//                    break;
-                default : System.out.println("잘못 입력 하셨습니다.");
-            }
 
+            while (storeCapital) { // 매장계좌
+                System.out.print("항목 선택 [1]계좌 입금 [2]계좌 잔액 현황 [3]뒤로가기 : ");
+                int choice2 = sc.nextInt();
+                switch(choice2) {
+                    case 1:
+                        boolean isSuccess = sDAO.cpCharge(sDAO.cpChargeInput(), sDAO.getCpCStoreId(adminId));
+                        if (isSuccess)
+                            System.out.println("계좌에 금액이 송금되었습니다..");
+                        else
+                            System.out.println("계좌에 송금이 실패했습니다.");
+                        break;
+                    case 2:
+                        sDAO.cpSelectResult(sDAO.cpSelect(sDAO.getCpSStoreId(adminId)));
+                        break;
+                    case 3: // Case for going back to the previous menu
+                        storeCapital = false; // Set the flag to false to exit the loop
+                        break; // Exit the current while loop and go back
+                    default:
+                        System.out.println("잘못 입력 하셨습니다.");
+                }
+            }
         }
+
 
         while (isHQLoggedIn) { // 본사 로그인시
             System.out.println("HQ 로그인 페이지");
