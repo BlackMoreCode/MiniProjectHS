@@ -44,6 +44,8 @@ public class HSMain {
                     if (user) {
                         System.out.println("로그인 성공!");
                         isLoggedIn = true;
+                        Session.loggedInUserId = userId; // Set the user ID in session
+                        Session.userRole = "customer"; // Set role for customer
                         break;
                     } else {
                         System.out.println("회원권한이 맞지 않는 경우에도 리다이렉트 됩니다.");
@@ -72,7 +74,8 @@ public class HSMain {
                         Session.loggedInUserId = adminId;  // Save the admin ID to the session
                         Session.storeId = aiDAO.adminStore(adminId);
                         Session.isAdminLoggedIn = true;    // Set the admin login flag
-                        isAdminLoggedIn = true;            // Keep the flag in the local method as well (if needed)
+                        Session.userRole = "admin"; // Set role for admin
+//                        isAdminLoggedIn = true;            // Keep the flag in the local method as well (if needed)
                         break;
                     } else {
                         System.out.println("회원권한이 맞지 않는 경우에도 리다이렉트 됩니다.");
@@ -89,6 +92,7 @@ public class HSMain {
                     if (hq) {
                         System.out.println("HQ 로그인 성공!");
                         isHQLoggedIn = true;
+                        Session.userRole = "hq"; // Set role for HQ
                         break;
                     } else {
                         System.out.println("회원권한이 맞지 않는 경우에도 리다이렉트 됩니다.");
@@ -124,10 +128,11 @@ public class HSMain {
                     MyPageDAO.membUpdate(new Acc_InfoVO(), userId);
                     break;
                 case 5:
-                    MyPageDAO.membDelete(new Acc_InfoVO());
+                    MyPageDAO.membDelete(Session.loggedInUserId); // Use session to get user ID
                     System.out.println("회원탈퇴 처리 되었습니다");
-                    isLoggedIn = false;
-                    menuSelect();
+                    isLoggedIn = false; // Set login flag to false
+                    Session.clear(); // Clear session data
+                    menuSelect(); // Redirect to menu
                     break;
                 case 6:
                     System.out.println("로그아웃 합니다");
