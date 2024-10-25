@@ -20,7 +20,7 @@ public class SingleMenu {
 
 
 
-    public void increaseCount(int count) {
+    public void changeCount(int count) {
         this.count += count;
     }
 

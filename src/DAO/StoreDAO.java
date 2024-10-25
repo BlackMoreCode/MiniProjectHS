@@ -12,10 +12,10 @@ import java.util.List;
 import java.util.Scanner;
 
 public class StoreDAO {
-    private Connection conn = null;
-    private Statement stmt = null;
-    private PreparedStatement psmt = null;
-    private ResultSet rs = null;
+    private static Connection conn = null;
+    private static Statement stmt = null;
+    private static PreparedStatement psmt = null;
+    private static ResultSet rs = null;
     private Scanner sc = null;
 
     public StoreDAO() {
@@ -152,6 +152,28 @@ public class StoreDAO {
         Common.close(psmt);
         Common.close(conn);
         return storeId;
+    }
+    // 매출현황에 소비자가 지불한 메뉴 금액만큼 추가
+    public static void salesPTp(int tp, String store_id) { // sales + Totalprice
+        try {
+            conn = Common.getConnection(); // 오라클 DB연결
+            String sql = "UPDATE STORE SET sales = sales + ? WHERE store_id = ?"; // 계좌 충전
+            psmt = conn.prepareStatement(sql); // 동적인 데이터로 받을때 사용 (?)
+            psmt.setInt(1, tp); // capital 설정
+            psmt.setString(2,store_id); // store_id 설정
+
+            if (psmt.executeUpdate() == 0) { // UPDATE
+                throw new Exception();
+            };
+            Common.close(psmt);
+            Common.close(conn);
+
+        } catch (Exception e) {
+            System.out.println("매출액 합산 실패");
+            Common.close(psmt);
+            Common.close(conn);
+        }
+
     }
 
     public int cpChargeInput() {
