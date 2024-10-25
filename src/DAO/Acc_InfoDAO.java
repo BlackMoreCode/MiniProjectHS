@@ -98,6 +98,26 @@ public class Acc_InfoDAO {
         return isAdmin;
     }
 
+    public String adminStore(String userId){
+        String sql = "SELECT STORE_ID FROM ACC_INFO WHERE USER_ID = ?";
+        String id = "";
+
+        try {
+            conn = Common.getConnection();
+            psmt = conn.prepareStatement(sql);
+            psmt.setString(1, userId);
+            rs = psmt.executeQuery();
+
+            while (rs.next()){
+                id = rs.getString("STORE_ID");
+            }
+            return id;
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+
     // 본점 용 로그인 체크
     public boolean accInfoHQCheck (String userId, String userPw) {
         boolean isHQ = false;

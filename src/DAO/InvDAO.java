@@ -441,30 +441,42 @@ public class InvDAO {
         return null;
     }
 
-    // 재고확인 실행 전에 가게명 확인 로직
-    public void invCheck() {
+    public void invCheck(String storeId) {
         List<InvVO> vo = new ArrayList<>();
+
+        // SQL query
         String sql = "SELECT i.MENU_NAME, i.STOCK, o.CATEGORY FROM INV i JOIN INV_ORDER o " +
                 "ON i.MENU_NAME = o.MENU_NAME WHERE STORE_ID = ?";
 
-
         try {
+            // Debug output to check the storeId value
+            System.out.println("Current storeId: " + storeId);
+
             conn = Common.getConnection();
             psmt = conn.prepareStatement(sql);
-            psmt.setString(1, storeId);
+            psmt.setString(1, storeId); // Bind storeId value
             rs = psmt.executeQuery();
 
+            // Fetching inventory data
             while (rs.next()) {
                 String menuName = rs.getString("MENU_NAME");
                 int stock = rs.getInt("STOCK");
-                String cat = rs.getString("CATEGORY");
-
-                vo.add(new InvVO(menuName, stock, cat));
+                String category = rs.getString("CATEGORY");
+                vo.add(new InvVO(menuName, stock, category));
             }
+
+            // Debug output to check list size
+            System.out.println("Inventory List Size: " + vo.size());
+
         } catch (Exception e) {
             System.out.println(e.getMessage());
+        } finally {
+            Common.close(rs);
+            Common.close(psmt);
+            Common.close(conn);
         }
 
+        // Menu selection logic remains the same
         while (true) {
             System.out.print("재고를 확인할 메뉴의 분류 선택 [1]버거, [2]사이드, [3]음료 [9]뒤로가기 : ");
             int sel = sc.nextInt();
@@ -472,7 +484,6 @@ public class InvDAO {
             switch (sel) {
                 case 1:
                     for (InvVO e : vo) {
-
                         if (e.getCategory().equals("버거")) {
                             System.out.println(e.getMenuName() + " : " + e.getStock() + "개");
                         }
@@ -496,7 +507,6 @@ public class InvDAO {
                     return;
             }
         }
-
     }
 
 }

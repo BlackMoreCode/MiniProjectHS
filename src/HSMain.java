@@ -1,7 +1,8 @@
-import DAO.Acc_InfoDAO;
-import DAO.MyPageDAO;
-import DAO.StoreDAO;
+import DAO.*;
 import VO.Acc_InfoVO;
+import VO.Order_RecordVO;
+
+import Common.Session;
 
 import java.util.List;
 import java.util.Scanner;
@@ -20,6 +21,7 @@ public class HSMain {
         boolean isAdminLoggedIn = false;
         boolean isHQLoggedIn = false;
         boolean storeCapital = false;
+
         String userId =""; // 유저 id
         String adminId = ""; // 점주 id
         String hqId = ""; // 본사 id
@@ -65,7 +67,10 @@ public class HSMain {
                     boolean admin = aiDAO.accInfoAdminCheck(adminId, adminPw);
                     if (admin) {
                         System.out.println("ADMIN 로그인 성공!");
-                        isAdminLoggedIn = true;
+                        Session.loggedInUserId = adminId;  // Save the admin ID to the session
+                        Session.storeId = aiDAO.adminStore(adminId);
+                        Session.isAdminLoggedIn = true;    // Set the admin login flag
+                        isAdminLoggedIn = true;            // Keep the flag in the local method as well (if needed)
                         break;
                     } else {
                         System.out.println("회원권한이 맞지 않는 경우에도 리다이렉트 됩니다.");
@@ -97,21 +102,28 @@ public class HSMain {
 
         while (isLoggedIn) { // 소비자 로그인
             System.out.println("내 정보 페이지");
+            InvDAO invDAO = new InvDAO();
 
-            System.out.print("[1]주문내역 확인 [2]회원정보 수정 [3]회원탈퇴 [4]종료하기 : ");
+            System.out.print("[1]주문하기 [2]주문내역 확인 [3]회원정보 수정 [4]회원탈퇴 [5]종료하기 : ");
             int choice = sc.nextInt();
             switch(choice) {
                 case 1:
+                    invDAO.choiceStore();
+                    invDAO.cusOrder();
                     break;
                 case 2:
-                    MyPageDAO.membUpdate(new Acc_InfoVO(), userId);
+                    List<Order_RecordVO> list = Order_RecordDAO.Order_RecordSelect();
+                    Order_RecordDAO.Order_RecordSelectResult(list);
                     break;
                 case 3:
+                    MyPageDAO.membUpdate(new Acc_InfoVO(), userId);
+                    break;
+                case 4:
                     MyPageDAO.membDelete(new Acc_InfoVO());
                     System.out.println("회원탈퇴 처리 되었습니다");
                     isLoggedIn = false;
                     break;
-                case 4:
+                case 5:
                     System.out.println("로그아웃 합니다");
                     isLoggedIn = false;
                     break;
@@ -123,18 +135,23 @@ public class HSMain {
         while (isAdminLoggedIn) { //점주로 로그인
             System.out.println("ADMIN 로그인 페이지");
             // System.out.print(adminId);
-            System.out.print("항목 선택 [1]발주 [2]재고확인 [3]매출현황 [4]매장계좌 : ");
+            InvDAO invDAO = new InvDAO();
+            System.out.print("항목 선택 [1]발주 [2]재고확인 [3]매출현황 [4]매장계좌 [5]로그아웃 : ");
             int choice = sc.nextInt();
             switch(choice) {
                 case 1: // 발주
                     break;
                 case 2: // 재고확인
+                    invDAO.invCheck(Session.storeId);
                     break;
                 case 3: sDAO.slSelectResult(sDAO.slSelect(sDAO.getSlStoreId(adminId)));
                     break;
                 case 4: storeCapital = true;
-//                    System.out.println("로그아웃 합니다");
-//                    isAdminLoggedIn = false;
+                case 5:
+                    System.out.println("로그아웃 합니다");
+                    Session.isAdminLoggedIn = false;  // Reset session
+                    Session.loggedInUserId = null;     // Clear session data
+                    isAdminLoggedIn = false;           // Reset local flag
                     break;
                 default :
                     System.out.println("메뉴를 잘 못 선택하셨습니다.");
