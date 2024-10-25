@@ -1,5 +1,6 @@
 import DAO.*;
 import VO.Acc_InfoVO;
+import VO.Inv_OrderVO;
 import VO.Order_RecordVO;
 
 import Common.Session;
@@ -176,21 +177,34 @@ public class HSMain {
 
         while (isHQLoggedIn) { // 본사 로그인시
             System.out.println("HQ 로그인 페이지");
-            System.out.print("");
+            System.out.print("[1]메뉴조회 [2]메뉴추가 [3]메뉴수정 [4]메뉴삭제 [5]로그아웃 : ");
             int choice = sc.nextInt();
             switch(choice) {
                 case 1:
+                    List<Inv_OrderVO> list = Inv_OrderDAO.Inv_OrderSelect();
+                    Inv_OrderDAO.Inv_OrderSelectResult(list);
                     break;
                 case 2:
+                    boolean isSuccess2 = Inv_OrderDAO.Inv_OrderInsert();
+                    if (isSuccess2) System.out.println("메뉴 등록 성공");
+                    else System.out.println("메뉴 등록 실패");
                     break;
                 case 3:
+                    isSuccess2 = Inv_OrderDAO.Inv_OrderUpdate();
+                    if (isSuccess2) System.out.println("메뉴 수정 성공");
+                    else System.out.println("메뉴 수정 실패");
                     break;
                 case 4:
+                    isSuccess2 = Inv_OrderDAO.Inv_OrderDelete();
+                    if (isSuccess2) System.out.println("메뉴 삭제 성공");
+                    else System.out.println("메뉴 삭제 실패");
+                    break;
+                case 5:
                     System.out.println("로그아웃 합니다");
                     isHQLoggedIn = false;
                     break;
-                default :
-                    System.out.println("메뉴를 잘 못 선택하셨습니다.");
+                default:
+                    System.out.println("메뉴를 잘못 선택하셨습니다.");
             }
         }
     }
