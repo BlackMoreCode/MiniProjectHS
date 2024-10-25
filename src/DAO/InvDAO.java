@@ -7,9 +7,7 @@ import VO.InvVO;
 
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 import static DAO.Order_RecordDAO.orderRecordInsert;
 import static DAO.StoreDAO.salesPTp;
@@ -151,19 +149,20 @@ public class InvDAO {
                     }
 
                     if (isExist) {
-                        System.out.println("이미 동일한 세트 메뉴가 장바구니에 존재합니다.");
                         int add = cnt + setCart.get(idx).getCount();
-                        if (burger.get(b).getStock() <= add || side.get(s).getStock() <= add || drink.get(d).getStock() <= add) {
+                        System.out.println("이미 동일한 세트 메뉴가 장바구니에 존재합니다.");
+
+                        if (burger.get(b).getStock() < add || side.get(s).getStock() < add || drink.get(d).getStock() < add) {
                             System.out.printf("선택하신 메뉴의 재고가 부족합니다. \n %s : %d개, %s : %d개, %s : %d개\n",
                                     burger.get(b).getMenuName(), burger.get(b).getStock(),
                                     side.get(s).getMenuName(), side.get(s).getStock(),
                                     drink.get(d).getMenuName(), drink.get(d).getStock());
                             break;
                         } else {
-                            System.out.println("해당 세트의 개수는 " + idx + "개 입니다.");
+                            System.out.println("해당 세트의 개수는 " + add + "개 입니다.");
                             setCart.get(idx).setCount(add);
                         }
-                    } else if (burger.get(b).getStock() <= cnt || side.get(s).getStock() <= cnt || drink.get(d).getStock() <= cnt) {
+                    } else if (burger.get(b).getStock() < cnt || side.get(s).getStock() < cnt || drink.get(d).getStock() < cnt) {
                         System.out.printf("선택하신 메뉴의 재고가 부족합니다. \n %s : %d개, %s : %d개, %s : %d개\n",
                                 burger.get(b).getMenuName(), burger.get(b).getStock(),
                                 side.get(s).getMenuName(), side.get(s).getStock(),
@@ -210,6 +209,7 @@ public class InvDAO {
             conn = Common.getConnection();
             psmt = conn.prepareStatement(sql);
             psmt.setString(1, storeId);
+            rs = psmt.executeQuery();
 
             while (rs.next()) {
                 String menuName = rs.getString("MENU_NAME");
@@ -220,6 +220,8 @@ public class InvDAO {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
+
+        System.out.println(lst.size());
 
         while (true) {
             int i = 1;
@@ -318,25 +320,64 @@ public class InvDAO {
                         break;
                     }
                 case 3:
+                    Map<String, Integer> map = new HashMap<>();
                     int totalPrice = 0;
                     for (SingleMenu e : singleCart) {
                         totalPrice += e.getPrice() * e.getCount();
                         System.out.println(e.getPrice() * e.getCount() + "원 추가, 총 가격 : " + totalPrice);
+
+                        map.put(e.getName(), map.getOrDefault(e.getName(), 0) + e.getCount());
                     }
                     for (SetMenu e : setCart) {
                         totalPrice += e.getPrice() * e.getCount();
                         System.out.println(e.getPrice() * e.getCount() + "원 추가, 총 가격 :" + totalPrice);
-                    }
-                    System.out.printf("총 가격 : %d원", totalPrice);
-                    paymentUpdate();
 
-                    // totalPrice 매출액으로 쏴주기
-                    salesPTp(totalPrice, storeId);
-                    // Order_RecordDAO의 메서드
-                    orderRecordInsert(storeId, orderToString(setCart, singleCart), totalPrice, userId);
-                    singleCart.clear();
-                    setCart.clear();
-                    return;
+                        map.put(e.getBurger().getName(), map.getOrDefault(e.getBurger().getName(), 0) + e.getCount());
+                        map.put(e.getSide().getName(), map.getOrDefault(e.getSide().getName(), 0) + e.getCount());
+                        map.put(e.getDrink().getName(), map.getOrDefault(e.getDrink().getName(), 0) + e.getCount());
+                    }
+                    boolean isStockCheck = true;
+
+                    for (Map.Entry<String, Integer> entry : map.entrySet()) {
+                        String menuName = entry.getKey();
+                        int requiredCount = entry.getValue();
+
+                        // 재고 확인
+                        for (InvVO f : lst) {
+                            if (f.getMenuName().equals(menuName)) {
+                                if (f.getStock() < requiredCount) {
+                                    System.out.printf("%s의 재고가 현재 %d개 남아있습니다. (필요 수량: %d개)\n",
+                                            menuName, f.getStock(), requiredCount);
+                                    isStockCheck = false; // 재고 부족 표시
+                                }
+                                break; // 메뉴를 찾았으므로 내부 루프 종료
+                            }
+                        }
+                    }
+
+                    if (!isStockCheck) {
+                        break;
+                    }
+
+                    System.out.printf("총 가격 : %d원\n", totalPrice);
+
+                    System.out.print("결제 하시겠습니까?(y/n)");
+                    String pay = sc.nextLine();
+                    if (pay.equals("y")) {
+                        System.out.println("결제를 진행합니다.");
+                        paymentUpdate();
+
+                        // totalPrice 매출액으로 쏴주기
+                        salesPTp(totalPrice, storeId);
+                        // Order_RecordDAO의 메서드
+                        orderRecordInsert(storeId, orderToString(setCart, singleCart), totalPrice, userId);
+                        singleCart.clear();
+                        setCart.clear();
+                        return;
+                    } else {
+                        System.out.println("이전 화면으로 돌아갑니다.");
+                        break;
+                    }
                 case 4:
                     System.out.println("이전 화면으로 돌아갑니다.");
                     return;
@@ -443,8 +484,8 @@ public class InvDAO {
     }
 
     // 점주의 발주를 실행
-    public void ownerOrder() {
-        int capital = CapitalCheck();
+    public void ownerOrder(String storeId) {
+        int capital = CapitalCheck(storeId);
 
         List<InvVO> vo = orderInvCheck();
         List<InvVO> burger = new ArrayList<>();
@@ -501,7 +542,7 @@ public class InvDAO {
                 int cnt = sc.nextInt();
                 sc.nextLine();
 
-                if(cnt <= 0){
+                if (cnt <= 0) {
                     System.out.println("0개 이하의 주문을 할 수 없습니다.");
                     break;
                 } else if (selectedCategory.get(idx).getPrice() * cnt <= capital) {
@@ -509,8 +550,8 @@ public class InvDAO {
                     try (Connection conn = Common.getConnection()) {
                         conn.setAutoCommit(false);
 
-                        updateInventory(conn, sqlOrder, cnt, selectedCategory.get(idx).getMenuName());
-                        updateCapital(conn, sqlCapital, cnt * selectedCategory.get(idx).getPrice());
+                        updateInventory(conn, sqlOrder, cnt, selectedCategory.get(idx).getMenuName(), storeId);
+                        updateCapital(conn, sqlCapital, cnt * selectedCategory.get(idx).getPrice(), storeId);
 
 
                         conn.commit();
@@ -544,7 +585,7 @@ public class InvDAO {
     }
 
     // 해당 지점의 재고 업데이트
-    private void updateInventory(Connection conn, String sqlOrder, int cnt, String menuName) {
+    private void updateInventory(Connection conn, String sqlOrder, int cnt, String menuName, String storeId) {
         try (PreparedStatement psmt = conn.prepareStatement(sqlOrder)) {
             psmt.setInt(1, cnt);
             psmt.setString(2, menuName);
@@ -556,7 +597,7 @@ public class InvDAO {
     }
 
     // 해당 지점의 가용금 감소
-    private void updateCapital(Connection conn, String sqlCapital, int amount) {
+    private void updateCapital(Connection conn, String sqlCapital, int amount, String storeId) {
         try (PreparedStatement psmt = conn.prepareStatement(sqlCapital)) {
             psmt.setInt(1, amount);
             psmt.setString(2, storeId);
@@ -567,16 +608,16 @@ public class InvDAO {
     }
 
     // 점주의 잔고 확인(STORE 테이블 DAO로 넘겨야 하나?)
-    public int CapitalCheck() {
+    public int CapitalCheck(String storeId) {
         String sqlCap = "SELECT CAPITAL FROM STORE WHERE STORE_ID = ?";
         try {
             conn = Common.getConnection();
             psmt = conn.prepareStatement(sqlCap);
             psmt.setString(1, storeId);
             rs = psmt.executeQuery();
-            rs.next();
-
-            return rs.getInt("CAPITAL");
+            if (rs.next()) {
+                return rs.getInt("CAPITAL");
+            }
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }

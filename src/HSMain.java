@@ -71,7 +71,7 @@ public class HSMain {
                         Session.storeId = aiDAO.adminStore(adminId);
                         Session.isAdminLoggedIn = true;    // Set the admin login flag
                         Session.userRole = "admin"; // Set role for admin
-//                        isAdminLoggedIn = true;            // Keep the flag in the local method as well (if needed)
+                        isAdminLoggedIn = true;            // Keep the flag in the local method as well (if needed)
                         break;
                     } else {
                         System.out.println("회원권한이 맞지 않는 경우에도 리다이렉트 됩니다.");
@@ -145,7 +145,7 @@ public class HSMain {
             int choice = sc.nextInt();
             switch(choice) {
                 case 1: // 발주
-                    invDAO.ownerOrder();
+                    invDAO.ownerOrder(Session.storeId);
                     break;
                 case 2: // 재고확인
                     invDAO.invCheck(Session.storeId);
