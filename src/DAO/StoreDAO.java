@@ -23,14 +23,13 @@ public class StoreDAO {
     }
 
     // 가상 계좌 충전
-    public boolean cpCharge(StoreVO vo) { // capital Charge
+    public boolean cpCharge(int i, String userId) { // capital Charge
         try {
             conn = Common.getConnection(); // 오라클 DB연결
             String sql = "UPDATE STORE SET capital = capital + ? WHERE store_id = ?"; // 계좌 충전
             psmt = conn.prepareStatement(sql); // 동적인 데이터로 받을때 사용 (?)
-
-            psmt.setInt(1, vo.getCapital()); // capital 설정
-            psmt.setString(2, vo.getStoreId()); // store_id 설정
+            psmt.setInt(1, i); // capital 설정
+            psmt.setString(2, userId); // store_id 설정
 
             if (psmt.executeUpdate() == 0) { // UPDATE
                 throw new Exception();
@@ -39,11 +38,31 @@ public class StoreDAO {
             Common.close(conn);
             return true;
         } catch (Exception e) {
-            System.out.print("계좌 입금 전송 실패");
+            System.out.println("계좌 입금 전송 실패");
             Common.close(psmt);
             Common.close(conn);
             return false;
         }
+    }
+
+    // DataBase Table Store에 store_id와 로그인 했을때 지점이 같은지 확인
+    public String getCpCStoreId(String userId) {
+        String storeId = "";
+        try {
+            conn = Common.getConnection();
+            String sql = "SELECT STORE_ID FROM ACC_INFO WHERE USER_ID = '" + userId + "'";
+            psmt = conn.prepareStatement(sql); //createStement 랑 prepareStatement의 차이를 공부해야한다
+            rs = psmt.executeQuery();
+            if(rs.next()) {
+                storeId = rs.getString("STORE_ID");
+            }
+        } catch(Exception e) {
+            System.out.println();
+        }
+        Common.close(rs);
+        Common.close(psmt);
+        Common.close(conn);
+        return storeId;
     }
 
     // 가용금액 표시
@@ -72,7 +91,7 @@ public class StoreDAO {
     }
 
     // DataBase Table Store에 store_id와 로그인 했을때 지점이 같은지 확인
-    public String getCpStoreId(String userId) {
+    public String getCpSStoreId(String userId) {
         String storeId = "";
         try {
             conn = Common.getConnection();
@@ -83,8 +102,7 @@ public class StoreDAO {
                 storeId = rs.getString("STORE_ID");
             }
         } catch(Exception e) {
-            System.out.println("로그인 실패!");
-            System.out.println(e.getMessage());
+            System.out.println();
         }
         Common.close(rs);
         Common.close(psmt);
@@ -128,8 +146,7 @@ public class StoreDAO {
                 storeId = rs.getString("STORE_ID");
             }
         } catch(Exception e) {
-            System.out.println("로그인 실패!");
-            System.out.println(e.getMessage());
+            System.out.println();
         }
         Common.close(rs);
         Common.close(psmt);
@@ -137,20 +154,17 @@ public class StoreDAO {
         return storeId;
     }
 
-    public static StoreVO cpChargeInput() {
+    public int cpChargeInput() {
         Scanner sc = new Scanner(System.in);
-        System.out.print("계좌에 송금받을 지점 입력 : ");
-        String storeId = sc.next();
         System.out.print("계좌에 송금할 금액 입력 : ");
-        int capital = sc.nextInt();
-        return new StoreVO(storeId, capital);
+        return sc.nextInt();
     }
 
 
     public List<StoreVO> cpSelectResult(List<StoreVO> list ) {
         System.out.println("-------------------------------------------------");
         for (StoreVO e : list) {
-            System.out.print(e.getStoreId() + "계좌 잔액 현황 : " + e.getCapital() + "원");
+            System.out.print("계좌 잔액 현황 : " + e.getCapital() + "원");
             System.out.println();
         }
         System.out.println("-------------------------------------------------");

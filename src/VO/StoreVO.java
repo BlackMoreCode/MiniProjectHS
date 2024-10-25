@@ -1,9 +1,9 @@
 package VO;
 
 public class StoreVO {
-    private String storeId; // 지점이름
-    private int sales; // 매출 현황
-    private int capital; // 지점 가용 계좌(자본금)
+    private String storeId;
+    private int sales; //
+    private int capital;
 
     public StoreVO(String storeId,int sales,int capital) {
         this.storeId = storeId;
@@ -18,6 +18,7 @@ public class StoreVO {
 
     public StoreVO(int sales) {
         this.sales = sales;
+
     }
 
     public String getStoreId() {
