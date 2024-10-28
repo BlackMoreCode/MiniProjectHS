@@ -1,8 +1,7 @@
-package DAO;
+package projectHS.DAO;
 
-import Common.Common;
-import Common.Common.Util;
-import VO.Acc_InfoVO;
+import projectHS.Common.Common;
+import projectHS.VO.Acc_InfoVO;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -17,6 +16,28 @@ public class Acc_InfoDAO {
     static PreparedStatement psmt = null;
     static ResultSet rs = null;
     static Scanner sc = new Scanner(System.in);
+
+    public int checkUserAuthLevel(String userId, String userPw) {
+        int authLevel = 0;
+        try {
+            conn = Common.getConnection();
+            String query = "SELECT AUTH_LV FROM ACC_INFO WHERE USER_ID = ? AND USER_PW = ?";
+            psmt = conn.prepareStatement(query);
+            psmt.setString(1, userId);
+            psmt.setString(2, userPw);
+            rs = psmt.executeQuery();
+            if (rs.next()) {
+                authLevel = rs.getInt("AUTH_LV");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            Common.close(rs);
+            Common.close(stmt);
+            Common.close(conn);
+        }
+        return authLevel;
+    }
 
     // 회원 정보 조회 (전체 조회; 중복 체크만을 위험이므로 유저권한 및 지점 정보를 제외하고 불러온다)
     public static List<Acc_InfoVO> Acc_InfoSelect() {
@@ -48,56 +69,6 @@ public class Acc_InfoDAO {
         return accInfo;
     }
 
-    // 유저용 로그인 체크 로직 => 아이디 / 비밀번호 검사. 회원정보 수정 / 탈퇴시에도 이 로직 이용?
-    public boolean accInfoCheck (String userId, String userPw) {
-        boolean isMember = false;
-        try {
-            conn = Common.getConnection();
-            String sql = "SELECT COUNT(*) FROM ACC_INFO WHERE USER_ID = ? AND USER_PW = ? AND AUTH_LV = 3";
-            psmt = conn.prepareStatement(sql); //createStement 랑 prepareStatement의 차이를 공부해야한다.
-            psmt.setString(1, userId);
-            psmt.setString(2, userPw);
-            rs = psmt.executeQuery();
-            if(rs.next()) {
-                if(rs.getInt("COUNT(*)") == 1) {
-                    isMember = true;
-                }
-            }
-        } catch(Exception e) {
-            System.out.println("로그인 실패!");
-            System.out.println(e.getMessage());
-        }
-        Common.close(rs);
-        Common.close(psmt);
-        Common.close(conn);
-        return isMember;
-    }
-
-    // 점주 용 로그인 체크
-    public boolean accInfoAdminCheck (String userId, String userPw) {
-        boolean isAdmin = false;
-        try {
-            conn = Common.getConnection();
-            String sql = "SELECT COUNT(*) FROM ACC_INFO WHERE USER_ID = ? AND USER_PW = ? AND AUTH_LV = 1";
-            psmt = conn.prepareStatement(sql); //createStement 랑 prepareStatement의 차이를 공부해야한다.
-            psmt.setString(1, userId);
-            psmt.setString(2, userPw);
-            rs = psmt.executeQuery();
-            if(rs.next()) {
-                if(rs.getInt("COUNT(*)") == 1) {
-                    isAdmin = true;
-                }
-            }
-        } catch(Exception e) {
-            System.out.println("로그인 실패!");
-            System.out.println(e.getMessage());
-        }
-        Common.close(rs);
-        Common.close(psmt);
-        Common.close(conn);
-        return isAdmin;
-    }
-
     public String adminStore(String userId){
         String sql = "SELECT STORE_ID FROM ACC_INFO WHERE USER_ID = ?";
         String id = "";
@@ -118,33 +89,6 @@ public class Acc_InfoDAO {
         return null;
     }
 
-    // 본점 용 로그인 체크
-    public boolean accInfoHQCheck (String userId, String userPw) {
-        boolean isHQ = false;
-        try {
-            conn = Common.getConnection();
-            String sql = "SELECT COUNT(*) FROM ACC_INFO WHERE USER_ID = ? AND USER_PW = ? AND AUTH_LV = 2";
-            psmt = conn.prepareStatement(sql); //createStement 랑 prepareStatement의 차이를 공부해야한다.
-            psmt.setString(1, userId);
-            psmt.setString(2, userPw);
-            rs = psmt.executeQuery();
-            if(rs.next()) {
-                if(rs.getInt("COUNT(*)") == 1) {
-                    isHQ = true;
-                }
-            }
-        } catch(Exception e) {
-            System.out.println("로그인 실패!");
-            System.out.println(e.getMessage());
-        }
-        Common.close(rs);
-        Common.close(psmt);
-        Common.close(conn);
-        return isHQ;
-    }
-
-
-
     // 회원 가입을 한다 = ACC_INFO 테이블에 추가한다 = INSERT 처리다?
     // 회원 가입을 위해서는 희망 아이디, 비밀번호, 연락처를 기입. 가입일시, 유저레벨(AUTH_LV)은 자동으로 부여. STORE_ID 역시 입력하지 않는다.
     public static void Acc_InfoInsert() {
@@ -156,7 +100,7 @@ public class Acc_InfoDAO {
         // 유저 아이디
         String userId;
         while(true) {
-            Util ut = new Util();
+            Common.Util ut = new Common.Util();
 
             System.out.print("아이디 : ");
             userId = sc.next();
@@ -203,7 +147,7 @@ public class Acc_InfoDAO {
         // 연락처 입력  - 13자리만 허용 (비워둘 수 없습니다 → 자동적용)
         String userPhone;
         while(true) {
-            System.out.println("연락처 : ");
+            System.out.print("연락처 : ");
             userPhone = sc.next();
             String check = userPhone;
             //중복 체크; 스트림 객체로 변환한 뒤 메서드 체이닝으로 각각 체크. filter(), findAn(), orElse() 사용.

@@ -1,16 +1,16 @@
-package DAO;
+package projectHS.DAO;
 
-import Common.Common;
-import Customer.SetMenu;
-import Customer.SingleMenu;
-import VO.InvVO;
+import projectHS.Common.Common;
+import projectHS.Customer.SetMenu;
+import projectHS.Customer.SingleMenu;
+import projectHS.VO.InvVO;
 
 
 import java.sql.*;
 import java.util.*;
 
-import static DAO.Order_RecordDAO.orderRecordInsert;
-import static DAO.StoreDAO.salesPTp;
+import static projectHS.DAO.Order_RecordDAO.orderRecordInsert;
+import static projectHS.DAO.StoreDAO.salesPTp;
 
 
 public class InvDAO {
@@ -19,7 +19,7 @@ public class InvDAO {
     PreparedStatement psmt = null;
     ResultSet rs = null;
     Scanner sc = new Scanner(System.in);
-    String storeId;
+    String storeId = null;
 
     List<SetMenu> setCart = new ArrayList<>();
     List<SingleMenu> singleCart = new ArrayList<>();
@@ -47,6 +47,11 @@ public class InvDAO {
         }
         System.out.println("주문 지점을 선택 해 주세요 : ");
         storeIdx = sc.nextInt() - 1;
+
+        if(storeId != null && !this.storeId.equals(lst.get(storeIdx))){
+            setCart.clear();
+            singleCart.clear();
+        }
 
         this.storeId = lst.get(storeIdx);
     }
@@ -220,8 +225,6 @@ public class InvDAO {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-
-        System.out.println(lst.size());
 
         while (true) {
             int i = 1;
@@ -422,12 +425,10 @@ public class InvDAO {
     public String orderToString(List<SetMenu> set, List<SingleMenu> single) {
         StringBuilder sb = new StringBuilder();
         for (SetMenu e : set) {
-            sb.append(e.getBurger().getName()).append("/");
-            sb.append(e.getCount()).append("개").append(",");
-            sb.append(e.getSide().getName()).append("/");
-            sb.append(e.getCount()).append("개").append(",");
-            sb.append(e.getDrink().getName()).append("/");
-            sb.append(e.getCount()).append(",");
+            sb.append(e.getBurger().getName()).append(" 세트").append("/");
+            sb.append(e.getCount()).append("개").append(",").append("  ㄴ");
+            sb.append(e.getSide().getName()).append(",").append("  ㄴ");
+            sb.append(e.getDrink().getName()).append("+");
         }
 
         for (SingleMenu e : single) {

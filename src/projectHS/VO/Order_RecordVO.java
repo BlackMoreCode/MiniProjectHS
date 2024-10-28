@@ -1,16 +1,16 @@
-package VO;
+package projectHS.VO;
 
 import java.sql.Timestamp;
 
 public class Order_RecordVO {
     private String orderCode;
     private String orderList;
-    private Timestamp orderTime; // LocalDateTime 을 대신 써야할지 아직 고민중.
+    private String orderTime;
     private int orderPrice;
     private String userId;
     private String storeId;
 
-    public Order_RecordVO(String orderCode, String orderList, Timestamp orderTime, int orderPrice, String userId, String storeId) {
+    public Order_RecordVO(String orderCode, String orderList, String orderTime, int orderPrice, String userId, String storeId) {
         this.orderCode = orderCode;
         this.orderList = orderList;
         this.orderTime = orderTime;
@@ -19,7 +19,22 @@ public class Order_RecordVO {
         this.storeId = storeId;
     }
 
-    public Order_RecordVO(String userId, String storeId, String orderList, int orderPrice) {
+    // 고객의 주문조회를 위한 생성자
+    public Order_RecordVO(String orderCode, String orderList, String orderTime, int orderPrice, String storeId) {
+        this.orderCode = orderCode;
+        this.orderList = orderList;
+        this.orderTime = orderTime;
+        this.orderPrice = orderPrice;
+        this.storeId = storeId;
+    }
+
+    // 가게의 주문조회를 위한 생성자
+    public Order_RecordVO(String orderCode, String orderList, String orderTime, String userId, int orderPrice) {
+        this.orderCode = orderCode;
+        this.orderList = orderList;
+        this.orderTime = orderTime;
+        this.orderPrice = orderPrice;
+        this.userId = userId;
     }
 
     public String getOrderCode() {
@@ -30,11 +45,11 @@ public class Order_RecordVO {
         return orderList;
     }
 
-    public Timestamp getOrderTime() {
+    public String  getOrderTime() {
         return orderTime;
     }
 
-    public void setOrderTime(Timestamp orderTime) {
+    public void setOrderTime(String  orderTime) {
         this.orderTime = orderTime;
     }
 
@@ -57,7 +72,6 @@ public class Order_RecordVO {
     public void setOrderList(String orderList) {
         this.orderList = orderList;
     }
-
 
 
     public void setOrderPrice(int orderPrice) {

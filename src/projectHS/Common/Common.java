@@ -1,4 +1,4 @@
-package Common;
+package projectHS.Common;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -18,7 +18,6 @@ public class Common {
         try {
             Class.forName(ORACLE_DRV);
             conn = DriverManager.getConnection(ORACLE_URL, ORACLE_ID, ORACLE_PW);
-            System.out.println("오라클 DB 연결 성공.");
         } catch (Exception e) {
             System.out.println(e + "오라클 DB 연결 실패, 에러 발생");
         }
@@ -28,7 +27,6 @@ public class Common {
         try {
             if (conn != null & !conn.isClosed()) {
                 conn.close();
-                System.out.println("Connection 해제 성공");
             }
         } catch (Exception e) {
             System.out.println("Connection 해제 실패");
@@ -38,7 +36,6 @@ public class Common {
         try {
             if(stmt != null && !stmt.isClosed()) {
                 stmt.close();
-                System.out.println("Statement 해제 성공");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -49,7 +46,6 @@ public class Common {
         try {
             if(rset != null && !rset.isClosed()) {
                 rset.close();
-                System.out.println("Result set 해제 성공");
             }
 
         } catch (Exception e) {

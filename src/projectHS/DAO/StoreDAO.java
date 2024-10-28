@@ -1,7 +1,7 @@
-package DAO;
+package projectHS.DAO;
 
-import VO.StoreVO;
-import Common.Common;
+import projectHS.Common.Common;
+import projectHS.VO.StoreVO;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,6 +10,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+
 
 public class StoreDAO {
     private static Connection conn = null;
@@ -45,6 +46,7 @@ public class StoreDAO {
         }
     }
 
+
     // DataBase Table Store에 store_id와 로그인 했을때 지점이 같은지 확인
     public String getCpCStoreId(String userId) {
         String storeId = "";
@@ -77,7 +79,7 @@ public class StoreDAO {
             while (rs.next()) {
                 String storeId =rs.getString("store_id");
                 int capital = rs.getInt("capital");
-                StoreVO vo = new StoreVO(storeId, capital);
+                StoreVO vo = StoreVO.withCapital(storeId, capital);
                 list.add(vo);
             }
         } catch (Exception e) {
@@ -116,13 +118,13 @@ public class StoreDAO {
         try {
             conn = Common.getConnection(); // 오라클 DB연결
             stmt = conn.createStatement(); // statement 생성
-            String query =  "SELECT sales FROM Store WHERE store_id = '" + slStoreId + "'";
-            System.out.println(query);
+            String query =  "SELECT store_id, sales FROM Store WHERE store_id = '" + slStoreId + "'";
             rs = stmt.executeQuery(query);
 
             while (rs.next()) {
+                String storeId = rs.getString("store_id");
                 int sales = rs.getInt("sales");
-                StoreVO vo = new StoreVO(sales);
+                StoreVO vo = StoreVO.withSales(storeId, sales);
                 list.add(vo);
             }
         } catch (Exception e) {
@@ -134,6 +136,7 @@ public class StoreDAO {
         }
         return list;
     }
+
     // DataBase Table Store에 store_id와 로그인 했을때 지점이 같은지 확인
     public String getSlStoreId(String userId) {
         String storeId = "";
@@ -153,6 +156,7 @@ public class StoreDAO {
         Common.close(conn);
         return storeId;
     }
+
     // 매출현황에 소비자가 지불한 메뉴 금액만큼 추가
     public static void salesPTp(int tp, String store_id) { // sales + Totalprice
         try {
@@ -186,7 +190,7 @@ public class StoreDAO {
     public List<StoreVO> cpSelectResult(List<StoreVO> list ) {
         System.out.println("-------------------------------------------------");
         for (StoreVO e : list) {
-            System.out.print("계좌 잔액 현황 : " + e.getCapital() + "원");
+            System.out.print("버거집 " + e.getStoreId() + "의 계좌 잔액 현황 : " + e.getCapital() + "원");
             System.out.println();
         }
         System.out.println("-------------------------------------------------");
@@ -195,8 +199,9 @@ public class StoreDAO {
 
     public void slSelectResult(List<StoreVO> list ) {
         System.out.println("-------------------------------------------------");
+
         for (StoreVO e : list) {
-            System.out.print("총 매출 현황 : " + e.getSales() + "원");
+            System.out.print("버거집 " + e.getStoreId() + "의 총 매출 현황 : " + e.getSales() + "원");
             System.out.println();
         }
         System.out.println("-------------------------------------------------");

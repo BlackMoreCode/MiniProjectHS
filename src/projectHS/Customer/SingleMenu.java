@@ -1,4 +1,4 @@
-package Customer;
+package projectHS.Customer;
 
 public class SingleMenu {
     String name;

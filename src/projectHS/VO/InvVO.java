@@ -1,6 +1,4 @@
-package VO;
-
-import java.util.Objects;
+package projectHS.VO;
 
 public class InvVO {
     private String menuName;

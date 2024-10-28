@@ -1,4 +1,4 @@
-package VO;
+package projectHS.VO;
 
 public class Inv_OrderVO {
     private String menuName;

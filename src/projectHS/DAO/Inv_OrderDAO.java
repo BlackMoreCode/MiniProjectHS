@@ -1,7 +1,8 @@
-package DAO;
+package projectHS.DAO;
 
-import Common.Common;
-import VO.Inv_OrderVO;
+import projectHS.Common.Common;
+import projectHS.HSMain;
+import projectHS.VO.Inv_OrderVO;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -32,8 +33,8 @@ public class Inv_OrderDAO {
 
         while (true) {
 
-            System.out.println("INV_ORDER TEST");
-            System.out.print("[1]메뉴조회 [2]메뉴추가 [3]메뉴수정 [4]메뉴삭제 [5]종료 : ");
+            System.out.println("==== HQ STOCK ADJUSTMENT ====");
+            System.out.print("[1]메뉴조회 [2]메뉴추가 [3]메뉴수정 [4]메뉴삭제 [5]뒤로가기 [9]종료 : ");
             int sel = sc.nextInt();
 
             switch (sel) {
@@ -56,7 +57,10 @@ public class Inv_OrderDAO {
                     if (isSuccess) System.out.println("메뉴 삭제 성공");
                     else System.out.println("메뉴 삭제 실패");
                     break;
-                case 5 :
+                case 5:
+                    HSMain.hqMenu();
+                    break;
+                case 9 :
                     System.out.println("프로그램을 종료합니다.");
                     return;
 
@@ -106,7 +110,7 @@ public class Inv_OrderDAO {
     }
 
     public static void Inv_OrderSelectResult(List<Inv_OrderVO> list) {
-        System.out.println("----------- 메뉴 정보 ------------");
+        System.out.println("==== HQ STOCK INFO ====");
 
         for (Inv_OrderVO e : list) {
             System.out.print(e.getMenuName() + " ");
@@ -115,7 +119,6 @@ public class Inv_OrderDAO {
             System.out.print(e.getDescr());
             System.out.println();
         }
-        System.out.println("---------------------------------");
     }
 
 

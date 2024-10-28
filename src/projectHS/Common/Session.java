@@ -1,4 +1,4 @@
-package Common;
+package projectHS.Common;
 
 public class Session {
     public static String loggedInUserId = null; // For normal customers
