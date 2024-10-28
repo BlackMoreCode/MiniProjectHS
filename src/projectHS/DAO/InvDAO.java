@@ -282,7 +282,7 @@ public class InvDAO {
 
                         }
 
-                        if (-change >= setCart.get(n).getCount()) {
+                        if (change < 0 && -change >= setCart.get(n).getCount()) {   // 음수인지 체크하고 메뉴에서 제거하는 로직
                             System.out.println("메뉴를 제거하였습니다.");
                             setCart.remove(n);
                         } else {
